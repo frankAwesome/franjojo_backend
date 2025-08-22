@@ -1,0 +1,8 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Firebase service account key
+firebase-service-account.json
+firebase-api-key.json

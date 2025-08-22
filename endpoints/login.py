@@ -5,6 +5,8 @@ from models.login_response import LoginResponse
 from firebase_admin import auth
 from fastapi import APIRouter
 import requests
+import json
+import os
 
 
 router = APIRouter()
@@ -12,7 +14,10 @@ router = APIRouter()
 
 @router.post("/login", response_model=LoginResponse)
 async def login(user: User):
-    api_key = ""
+    # Load API key from firebase-api-key.json
+    key_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "firebase-api-key.json")
+    with open(key_path, "r") as f:
+        api_key = json.load(f)["api_key"]
     url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={api_key}"
     payload = {
         "email": user.email,
