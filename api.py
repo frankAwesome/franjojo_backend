@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials
 from fastapi.exceptions import RequestValidationError
