@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials
 from fastapi.exceptions import RequestValidationError
@@ -12,7 +13,17 @@ cred = credentials.Certificate("firebase-service-account.json")
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
+
 app = FastAPI()
+
+# Allow all CORS origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Register exception handlers
 app.add_exception_handler(Exception, global_exception_handler)
