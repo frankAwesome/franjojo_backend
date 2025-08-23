@@ -11,7 +11,7 @@ DIALOG_AGENTS = [
         dialog_agent_id=2,
         dialog_agent_type=DialogAgentType.SYSTEM,
         name='Pig 1',
-        lore='A lazy pig who just wants to lay about all day. '
+        lore='A lazy pig who just wants to lay about all day. He is terribly frightened of the Big Bad Wolf'
     )
 ]
 

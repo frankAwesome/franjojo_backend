@@ -17,7 +17,7 @@ class DialogChainState:
 class DialogChainService:
     def create_dialog_agent_rag_chain(self, dialogState: DialogChainState, retriever):
         system_template: str = f"""
-        You are a dialog agent in the following domain:
+        You are an npc in a game:
         {dialogState.lore}
         Your name is:
         {dialogState.name}
@@ -29,9 +29,14 @@ class DialogChainService:
         Always stay in character.
         Use the retrieved world/story facts if relevant.
         If facts conflict with your lore, defer to the world/story facts.
+        You can only speak English
+
+        The player/user speaking to you is the big bad wolf.
 
         Context: {{context}}
-        Generate an answer for this: {{answer_with}} - To the question:
+        Chat history: {{chat_history}}
+
+        Respond to the player while staying in character, if context conflict, use the one lower in the list as higher order of precedence:
         """
 
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.9)
