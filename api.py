@@ -44,6 +44,7 @@ app.include_router(register.router)
 app.include_router(example.router)
 app.include_router(profile.router)
 app.include_router(npc_dialog.router)
+app.include_router(instant.router)
 
 
 if __name__ == "__main__":

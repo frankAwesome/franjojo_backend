@@ -1,4 +1,5 @@
-from typing import Annotated
+import json
+from typing import Annotated, List
 
 from fastapi import Depends
 from fastapi import APIRouter
@@ -15,22 +16,16 @@ from langchain_openai import OpenAIEmbeddings
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
+from services.chat_history_service import ChatHistoryService
 from services.dialog_chain_service import DialogChainService, DialogChainState
 from services.dialog_tree_service import DialogTreeService
 from services.project_service import ProjectService
 from langchain.vectorstores import FAISS
 
 import logging
+logger = logging.getLogger("franjojo_backend")
 
 from services.vector_db_service import VectorDBService
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 dialog_agent_service = DialogAgentService()
@@ -40,9 +35,11 @@ embeddings = OpenAIEmbeddings()
 dialog_tree_service = DialogTreeService()
 dialog_chain_service = DialogChainService()
 project_service = ProjectService()
-vector_db_service = VectorDBService()
+chat_history_service = ChatHistoryService()
+# vector_db_service = VectorDBService()
 
 npc_conversations = { }
+active_vector_dbs: List[VectorDBService] = []
 
 embeddings = OpenAIEmbeddings()
 docs = [
@@ -123,17 +120,28 @@ async def create_dialog_tree(body: GenerateDialogTree, user_data=Depends(verify_
 
 @router.post("/generate/dialog")
 async def create_dialog(params: GenerateInstantRequest, user_data=Depends(verify_token)):
+    parsed_user_data = json.loads(json.dumps(user_data))
+    logger.info('Loading VDB')
+    vector_db_service = next((x for x in active_vector_dbs if x.user_id == parsed_user_data['user_id']), None)
+
+    if not vector_db_service:
+        vector_db_service = VectorDBService(user_id=parsed_user_data['user_id'], project_id=params.projectId)
+        active_vector_dbs.append(vector_db_service)
+
+    logger.info('Finished Loading VDB')
+
+    context = []
+
     # retrieve lore + chapter info
     project = project_service.get_project(params.projectId)
     lore = project.lore
-    lore_progression = ''
 
     for chapter_id in params.completed_chapter_ids:
         chapter = next(x for x in project.chapters if x.chapter_id == chapter_id)
-        lore_progression += chapter.completed_lore + '\n'
+        context.append(chapter.completed_lore)
     
     current_chapter = next(x for x in project.chapters if x.chapter_id == params.current_chapter_id)
-    lore_progression += current_chapter.active_lore + '\n'
+    context.append(current_chapter.active_lore)
 
     # retrieve profiles for involved agents
     from_dialog_agent = dialog_agent_service.get_dialog_agent(params.fromId)
@@ -144,10 +152,9 @@ async def create_dialog(params: GenerateInstantRequest, user_data=Depends(verify
         dialog_agent=to_dialog_agent
     )
 
-    vector_db_service.add_documents([
-        'Pig 1 knows that the Straw house is down by the river',
-        lore_progression
-    ])
+    logger.info("context: ")
+    logger.info(context)
+    vector_db_service.rebase(context)
     retriever = vector_db_service.get_retriever()
 
     #get conversation history
@@ -166,7 +173,11 @@ async def create_dialog(params: GenerateInstantRequest, user_data=Depends(verify
         resp = inferred_dialog.generated_response
     else:
         # generate quick response
-        resp = chain({"question": from_dialog_agent.name + ": " + params.fromInput})
+        # resp = chain({"question": from_dialog_agent.name + ": " + params.fromInput})
+        chat_history = chat_history_service.get_chat_history(parsed_user_data['user_id'] + "/" + str(to_dialog_agent.dialog_agent_id))
+        resp = dialog_chain_service.create_prompt(params.fromInput, dialog_state, chat_history, retriever)
+
+    chat_history_service.save_chat(parsed_user_data['user_id'] + "/" + str(to_dialog_agent.dialog_agent_id), resp.content)
 
     return {'response': resp}
 

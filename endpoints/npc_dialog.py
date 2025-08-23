@@ -1,12 +1,24 @@
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from common.verify_token import verify_token
+from models.http.create_dialog_request import CreateDialogRequest
 from models.http.npc_dialog import GetNPCDialogRequest, GetGameStoryParamsResponse, NPCInfo, ChapterInfo, Milestone, GameStoryModel
 from typing import List
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
+import logging
+from services.chat_history_service import ChatHistoryService
+from services.vector_db_service import VectorDBService
+
+from services.dialog_chain_service import DialogChainService, DialogChainState
+
+dialog_chain_service = DialogChainService()
+chat_history_service = ChatHistoryService()
 
 router = APIRouter()
+logger = logging.getLogger("franjojo_backend")
+active_vector_dbs: List[VectorDBService] = []
 
 @router.post("/v1/addGameStory")
 def add_game_story(story: GameStoryModel):
@@ -32,16 +44,6 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-@router.post("/v1/getNPCDialog")
-def get_npc_dialog(request: GetNPCDialogRequest):
-    # Example: log dialog to Firestore
-    doc_ref = db.collection("npc_dialogs").document()
-    data = request.dict()
-    data["timestamp"] = datetime.utcnow().isoformat()
-    doc_ref.set(data)
-    # For demo, just echo back
-    return {"npcResponse": f"NPC ({request.npcId}) heard: {request.dialogText}", "timestamp": data["timestamp"]}
-
 @router.get("/v1/getGameStorieParams/{storyName}")
 def get_game_story_params(storyName: str):
     # Fetch story parameters from Firestore
@@ -62,8 +64,6 @@ def get_game_story_params(storyName: str):
         timestamp=datetime.utcnow()
     )
 
-
-
 @router.get("/v1/getAllStories")
 def get_all_stories():
     stories = []
@@ -76,3 +76,56 @@ def get_all_stories():
                     character["image"] = ""
         stories.append(story)
     return {"stories": stories, "count": len(stories)}
+
+@router.post("/v1/getDialog/{storyId}/{npcId}")
+def create_dialog(storyId: int, npcId: int, body: CreateDialogRequest, user_data=Depends(verify_token)):
+
+    instance_id = user_data['user_id'] + "/" + str(storyId)
+
+    story = __feth_story(str(storyId))
+
+    lore = story['lore']
+    relevant_npc = next(x for x in story['characters'] if x['id'] == npcId)
+
+    vector_db_service = ___get_vector_db_service(instance_id)
+
+    npc_dialog_state = __get_dialog_state(lore, relevant_npc)
+    retriever = vector_db_service.get_retriever()
+
+    chat_history = chat_history_service.get_chat_history(instance_id)
+
+    resp = dialog_chain_service.create_prompt(body.playerQuestion, npc_dialog_state, chat_history, [], retriever)
+
+    chat_history_service.save_chat(instance_id, body.playerQuestion, resp.content, relevant_npc['name'])
+    
+    return {'response': {
+        "dialogResponse": resp.content
+    }}
+
+def __feth_story(storyId: str):
+    doc_ref = db.collection("game_stories").document(storyId)
+    doc = doc_ref.get()
+
+    if not doc.exists:
+        raise HTTPException(status_code=404, detail=f"Story '{storyId}' not found.")
+    
+    response = doc.to_dict()
+    return response
+
+def __get_dialog_state(lore: str, npc):
+    return DialogChainState(
+        lore=lore,
+        name=npc['name'],
+        background=npc['description']
+    )
+
+def ___get_vector_db_service(instance_id):
+    
+    vector_db_service = next((x for x in active_vector_dbs if x.instance_id == instance_id), None)
+
+    if not vector_db_service:
+        vector_db_service = VectorDBService(instance_id)
+        active_vector_dbs.append(vector_db_service)
+    
+    return vector_db_service
+
