@@ -9,7 +9,7 @@ from common.exception_handlers import global_exception_handler, validation_excep
 from endpoints import login, register, example, google_login, profile
 from endpoints.generate import instant
 
-cred = credentials.Certificate("firebase-service-account.json")
+cred = credentials.Certificate("./firebase-service-account.json")
 
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)

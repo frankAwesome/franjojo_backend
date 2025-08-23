@@ -4,14 +4,14 @@ DIALOG_AGENTS = [
     DialogAgent(
         dialog_agent_id=1,
         dialog_agent_type=DialogAgentType.USER,
-        name='John',
-        lore='The player. A protagonist adventurer.'
+        name='Big Bad Wolf',
+        lore='Wants to eat the pigs.'
     ),
     DialogAgent(
         dialog_agent_id=2,
         dialog_agent_type=DialogAgentType.SYSTEM,
-        name='Bobby',
-        lore='A poor fisherman in the town of Floodville.'
+        name='Pig 1',
+        lore='A lazy pig who just wants to lay about all day. '
     )
 ]
 
