@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from common.exception_handlers import global_exception_handler, validation_exception_handler, http_exception_handler
 
-from endpoints import login, register, example, google_login, profile
+from endpoints import login, register, example, google_login, profile, npc_dialog
 from endpoints.generate import instant
 
 cred = credentials.Certificate("firebase-service-account.json")
@@ -43,7 +43,7 @@ app.include_router(google_login.router)
 app.include_router(register.router)
 app.include_router(example.router)
 app.include_router(profile.router)
-app.include_router(instant.router)
+app.include_router(npc_dialog.router)
 
 
 if __name__ == "__main__":
