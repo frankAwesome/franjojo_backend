@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 import firebase_admin
+import logging
 from firebase_admin import credentials
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -9,11 +10,16 @@ from common.exception_handlers import global_exception_handler, validation_excep
 from endpoints import login, register, example, google_login, profile
 from endpoints.generate import instant
 
-cred = credentials.Certificate("./firebase-service-account.json")
+cred = credentials.Certificate("firebase-service-account.json")
 
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
+
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("franjojo_backend")
 
 app = FastAPI()
 
