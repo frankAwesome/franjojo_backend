@@ -22,6 +22,8 @@ from langchain.vectorstores import FAISS
 
 import logging
 
+from services.vector_db_service import VectorDBService
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +40,7 @@ embeddings = OpenAIEmbeddings()
 dialog_tree_service = DialogTreeService()
 dialog_chain_service = DialogChainService()
 project_service = ProjectService()
+vector_db_service = VectorDBService()
 
 npc_conversations = { }
 
@@ -101,10 +104,10 @@ async def create_dialog_tree(body: GenerateDialogTree, user_data=Depends(verify_
         pointer = pointers.pop(0)
 
         if pointer.generate_response:
-            question = pointer.match_dialog
+            question = "I ask this: " + pointer.match_dialog + "\n answer my question with this as the response, but spruce it up based on your character: " + pointer.respond_dialog
             dialog_state.answer_with = pointer.respond_dialog
             pointer.generated_response = chain({
-                "question": question, "answer_with": pointer.respond_dialog
+                "question": question
             })['answer']
         else:
             # TODO : figure out how to inject this into convo history if use
@@ -119,7 +122,7 @@ async def create_dialog_tree(body: GenerateDialogTree, user_data=Depends(verify_
     return {'response': dialog_tree_service.get_dialog_tree_nodes()}
 
 @router.post("/generate/dialog")
-async def create_dialog(params: Annotated[GenerateInstantRequest, Depends()], user_data=Depends(verify_token)):
+async def create_dialog(params: GenerateInstantRequest, user_data=Depends(verify_token)):
     # retrieve lore + chapter info
     project = project_service.get_project(params.projectId)
     lore = project.lore
@@ -136,12 +139,20 @@ async def create_dialog(params: Annotated[GenerateInstantRequest, Depends()], us
     from_dialog_agent = dialog_agent_service.get_dialog_agent(params.fromId)
     to_dialog_agent = dialog_agent_service.get_dialog_agent(params.toId)
 
-    vectorstore = FAISS.load_local("world_index", embeddings)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+    dialog_state = DialogChainState(
+        lore=lore,
+        dialog_agent=to_dialog_agent
+    )
+
+    vector_db_service.add_documents([
+        'Pig 1 knows that the Straw house is down by the river',
+        lore_progression
+    ])
+    retriever = vector_db_service.get_retriever()
 
     #get conversation history
     if to_dialog_agent.dialog_agent_id not in npc_conversations:
-        npc_conversations[to_dialog_agent.dialog_agent_id] = dialog_chain_service.create_dialog_agent_rag_chain(lore, to_dialog_agent, retriever)
+        npc_conversations[to_dialog_agent.dialog_agent_id] = dialog_chain_service.create_dialog_agent_rag_chain(dialog_state, retriever)
     
     chain = npc_conversations[to_dialog_agent.dialog_agent_id]
 
@@ -155,7 +166,7 @@ async def create_dialog(params: Annotated[GenerateInstantRequest, Depends()], us
         resp = inferred_dialog.generated_response
     else:
         # generate quick response
-        resp = chain({"question": params.fromInput})
+        resp = chain({"question": from_dialog_agent.name + ": " + params.fromInput})
 
     return {'response': resp}
 
