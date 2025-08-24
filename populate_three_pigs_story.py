@@ -16,7 +16,7 @@ db = firestore.client()
 story_data = {
     "storyId": 1,
     "title": "The Three Pigs and the Wolf",
-    "lore": "A Minecraft-themed retelling of the classic tale, where three pigs build their homes and face the cunning wolf.",
+    "lore": "Once upon a time, in a bright, blocky meadow, three little pigs built their homes—Percy’s of straw, Penny’s of wood, and Peter’s of brick. They were just settling in when the forest fell quiet: eyes in the shadows, soft steps on the path. The Big Bad Wolf was coming to huff and puff at every door. Gather close—your adventure starts now.",
     "characters": [
         {
             "id": 1,

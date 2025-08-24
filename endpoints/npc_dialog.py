@@ -42,7 +42,7 @@ def add_game_story(story: GameStoryModel):
     story_id = story_dict.get("storyId")
     if not story_id:
         raise HTTPException(status_code=400, detail="Missing storyId in request body.")
-    doc_ref = db.collection("game_stories").document(story_id)
+    doc_ref = db.collection("game_stories").document(str(story_id))
     story_dict["timestamp"] = datetime.utcnow().isoformat()
     doc_ref.set(story_dict)
     return {"message": f"Story '{story_id}' added/updated.", "timestamp": story_dict["timestamp"]}
