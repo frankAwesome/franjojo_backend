@@ -53,13 +53,14 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-@router.get("/v1/getGameStorieParams/{storyName}")
-def get_game_story_params(storyName: str):
-    # Fetch story parameters from Firestore
-    doc_ref = db.collection("game_stories").document(storyName)
+
+@router.get("/v1/getGameStorieParams/{storyId}")
+def get_game_story_params(storyId: int):
+    # Fetch story parameters from Firestore by storyId
+    doc_ref = db.collection("game_stories").document(str(storyId))
     doc = doc_ref.get()
     if not doc.exists:
-        raise HTTPException(status_code=404, detail=f"Story '{storyName}' not found.")
+        raise HTTPException(status_code=404, detail=f"Story with id '{storyId}' not found.")
     response = doc.to_dict()
     # Ensure all characters have an image field
     if "characters" in response:
@@ -67,7 +68,7 @@ def get_game_story_params(storyName: str):
             if "image" not in character:
                 character["image"] = ""
     return GetGameStoryParamsResponse(
-        endpoint=f"v1/getGameStorieParams/{storyName}",
+        endpoint=f"v1/getGameStorieParams/{storyId}",
         method="GET",
         response=response,
         timestamp=datetime.utcnow()
