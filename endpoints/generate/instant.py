@@ -181,7 +181,6 @@ async def create_dialog(params: GenerateInstantRequest, user_data=Depends(verify
 
     return {'response': resp}
 
-
 def __match_dialog_option(input: str, options: list[DialogTreeNode], threshold: float = 0.75):
     input_vec = embeddings.embed_query(input)
     option_vecs = [embeddings.embed_query(opt.match_dialog) for opt in options]

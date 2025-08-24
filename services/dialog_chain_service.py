@@ -66,7 +66,9 @@ class DialogChainService:
     
     
 
-    def create_prompt(self, question, dialogState: DialogChainState, chat_history, manual_context: List[str], retriever):
+    async def create_prompt(self, question, dialogState: DialogChainState, chat_history, manual_context: List[str], retriever):
+
+        logger.info("Creating prompt")
 
         better_manual_context = ''
 
@@ -113,5 +115,7 @@ class DialogChainService:
         } | prompt | llm
 
         # 5. Run
-        result = chain.invoke(question)
+        result = await chain.ainvoke(question)
+
+        logger.info("Done creating prompt")
         return result
