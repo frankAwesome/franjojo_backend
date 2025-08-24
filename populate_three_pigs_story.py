@@ -58,62 +58,36 @@ story_data = {
     "chapters": [
         {
             "id": 1,
-            "title": "Pig 1 Builds a Straw House",
+            "title": "Percy Pig Build a Straw House",
             "image": "https://i.ytimg.com/vi/bsiE5jTiaaA/maxresdefault.jpg",
-            "description": "Percy Pig quickly builds his house out of straw. It goes up fast, but is it strong enough to keep him safe?",
+            "description": "Percy Pig quickly build his house out of straw. It goes up fast, but is it strong enough to keep him safe?",
             "milestones": make_milestones([
-                "Gather straw from the field",
-                "Build the house before sunset",
-                "Test the house for strength"
+                "Greet Percy Pig",
+                "Threaten to Blow up the straw house, see if there is weaknesses",
+                "Find ways to Blow up the straw house"
             ], start_id=1),
             "timestamp": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": 2,
-            "title": "Pig 2 Builds a Wood House",
+            "title": "Penny Pig Builds a Wood House",
             "image": "https://i.ytimg.com/vi/gJgLwcKGOto/sddefault.jpg",
             "description": "Penny Pig chooses wood for her home, hoping it will be sturdier than straw. She decorates it with flowers.",
             "milestones": make_milestones([
-                "Collect wood from the forest",
-                "Build a wooden house with windows",
-                "Decorate the house with flowers"
+                "Threaten to Blow up the Wood House, see if there is weaknesses",
+                "Find ways to Blow up the Wood House"
             ], start_id=4),
             "timestamp": datetime.now(timezone.utc).isoformat()
         },
         {
             "id": 3,
-            "title": "Pig 3 Builds a Brick House",
+            "title": "Peter Pig Builds a Brick House",
             "image": "https://i.ytimg.com/vi/Q36THRWXRDY/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAWDwEwXNEG6udMXXxNkjBCi4DRZg",
             "description": "Peter Pig works hard to build a strong brick house. It takes longer, but he feels safe inside.",
             "milestones": make_milestones([
-                "Find clay and make bricks",
-                "Build a sturdy brick house",
-                "Invite siblings to visit"
+                "Threaten to Blow up the Brick House, see if there is weaknesses",
+                "Find ways to Blow up the Brick House"
             ], start_id=7),
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": 4,
-            "title": "The Wolf Arrives",
-            "image": "https://i.ytimg.com/vi/PfeQUEges2g/hq720.jpg",
-            "description": "The cunning wolf comes to the village, eyeing the pigs’ houses. He starts with Percy’s straw house.",
-            "milestones": make_milestones([
-                "Scout the village for pigs",
-                "Try to blow down the straw house",
-                "Move to the next house if unsuccessful"
-            ], start_id=10),
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": 5,
-            "title": "The Pigs Stand Together",
-            "image": "https://i.ytimg.com/vi/LTfN32O5f1o/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAkiG_d4VlXV0E_CbTr7pC_UibrBw",
-            "description": "After the wolf blows down the straw and wood houses, all three pigs hide in Peter’s brick house and outsmart the wolf.",
-            "milestones": make_milestones([
-                "Hide in the brick house",
-                "Work together to defend the house",
-                "Outsmart the wolf"
-            ], start_id=13),
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
     ],
